@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.7.1.js'></script>
+<script type='text/javascript' src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css">
+
+
+
+
+<script type='text/javascript'>//<![CDATA[ 
+$(window).load(function(){
+var onswipe = false;
+$( '#swipedelete li' ).live( 'swiperight',function(){ 
+curId = this.id;
+// changed to click to test on desktop browser
+//$( '#swipedelete li' ).live( 'click',function(){ 
+// change click to swiperight to test swipe
+    if(!onswipe){
+        onswipe = true;
+        
+        var li;    
+         var html = '<li class="delete-controls"><button type="button" class="btncancel ui-btn-corner-all ui-btn-up-c" data-role="button" data-theme="c">Cancel</button>&nbsp;<button type="button" class="btndelete ui-btn-corner-all ui-btn-up-e" data-role="button" data-theme="e">Delete</button>&nbsp;<button type="button" class="ui-btn-corner-all ui-btn-up-c" data-role="button" data-theme="c"><a href="#mypanel"  data-role="button" data-inline="true" data-theme="c" onclick="editFun(curId)">Edit</a></button></li>';
+        $(this).after(html);
+        li = $(this).detach();    
+        $("ul[id='swipedelete']").listview("refresh");
+        
+        $(".delete-controls").unbind("tap click");
+        $(".delete-controls .btndelete").click(function(e){
+            //alert("Click on delete");
+            if(!confirm("Are you sure you want to delete this item?")){        
+                $(".delete-controls").before(li);
+                $(".delete-controls").remove();
+            } else{
+				localStorage.removeItem(curId);
+                $(".delete-controls").remove();
+            }
+            
+            onswipe = false;
+            $("ul[id='swipedelete']").listview("refresh");
+        });
+        
+        $(".delete-controls .btncancel").click(function(e){
+            //alert("Click on cancel");
+            $(".delete-controls").before(li);
+            $(".delete-controls").remove();
+            
+            onswipe = false;
+            $("ul[id='swipedelete']").listview("refresh");
+        });        
+        
+    }
+});
+});//]]>  
+
+</script>
+
+
+</head>
+<body>
+
+
+<div data-role="page" id="pageone">
+  <div data-role="panel" id="myPanel"> 
+    <h2>Panel Header</h2>
+    <div class="task-list">
+                <h3>Add a task</h3>
+                <form id="todo-form">
+                    <input type="text" id="title" placeholder="Title" onfocus="if(this.value){this.value='';}" />
+                    <textarea id="description" placeholder="Descrtipion"onfocus="if(this.value){this.value='';}"></textarea>
+		    <input name="mydate" id="datepicker" placeholder="Date" type="datetime-local"" data-role="datebox" data-options='{"mode":"calbox","useFocus": true}' >
+		    <input type="button" value="Add item to list" onclick="appendToList()"/>
+	
+                </form>
+	</div> 
+ </div>
+
+
+
+<div data-role="panel" id="mypanel" data-position="right" data-display="push">
+
+  <!-- panel content goes here -->
+<h2>Panel Edit</h2>
+    <div class="task-list">
+                <h3>Add a task</h3>
+                <form id="todo-form">
+                    <input type="text" id="TitleEdit" placeholder="Title" />
+                    <textarea id="descriptionEdit" placeholder="Descrtipion"></textarea>
+		    <input name="mydate" id="datepickerEdit" type="datetime-local"" data-role="datebox"data-options='{"mode":"calbox","useFocus": true}'>
+		    <input type="button" value="Update" onclick="editList()"/>
+
+	
+                </form>
+	</div>
+
+</div>
+
+
+
+<div data-role="footer"  >
+	<a href="#myPanel" class="ui-btn ui-btn-inline ui-corner-all ui-shadow">ADD TASK</a>
+	<h1>DoTo list</h1>
+</div>
+
+
+            <div data-role="content" id="content">
+					<ul id="swipedelete" data-role="listview" data-inset="true" data-split-theme="c" data-split-icon="plus" data-theme="c" ></ul>    
+            </div><!-- /content -->
+        
+
+<div data-role="footer"  >
+	<h1>DoTo list</h1>
+</div>
+
+
+
+	
+
+
+<script>
+             
+				$(document).on("pageinit", function() {
+				var nextId = 0;	
+
+				if (localStorage.length > 0)
+				{
+					for(var i=1, len=localStorage.length; i<=len; i++) {
+						var t = localStorage.getItem(i);
+						var j=0;
+						while(!t){
+							j++;
+							t = localStorage.getItem(i+j);
+							}
+							
+						localStorage.removeItem(i+j);
+						var tt = JSON.parse(t);
+						var titleField = tt.title;
+						var descriptionField = tt.desc;
+						var dateField = tt.date;
+						var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+						localStorage.setItem(i ,JSON.stringify(usrInput));
+ 
+						$("#swipedelete").append("<li id=" + i + "><a href='#'>" + dateField  + " -- " + titleField + " " + descriptionField  + " </a> </li>");
+               			$("#swipedelete").listview("refresh");
+					
+					}
+					var nextId = i-1;
+				}
+
+		});
+		
+		
+		
+function editFun(id){
+
+
+		var t = localStorage.getItem(id);
+		var tt = JSON.parse(t);
+		var titleField = tt.title;
+		var descriptionField = tt.desc;
+		var dateField = tt.date;
+		document.getElementById('TitleEdit').value = titleField ;
+		document.getElementById('descriptionEdit').value = descriptionField ;
+		document.getElementById('datepickerEdit').value = dateField ;
+
+	}
+			
+			
+function editList(){
+
+
+		var titleField = document.getElementById('TitleEdit').value;
+		var descriptionField = document.getElementById('descriptionEdit').value;
+		var dateField = document.getElementById('datepickerEdit').value;
+		var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+		localStorage.setItem(curId ,JSON.stringify(usrInput));
+                		     
+		$( "#swipedelete" ).children().remove();
+		refreshList();
+		window.location.reload();
+     
+    }
+
+function refreshList(){
+		if (localStorage.length > 0)
+		{
+			for(var i=1, len=localStorage.length; i<=len; i++) 
+			{
+			var t = localStorage.getItem(i);
+			var tt = JSON.parse(t);
+			var titleField = tt.title;
+			var descriptionField = tt.desc;
+			var dateField = tt.date;
+						
+			$("#swipedelete").append("<li id=" + i  + "><a href='#'>" + dateField  + " -- " + titleField + " " + descriptionField  + "</a></li>");
+             $("#swipedelete").listview("refresh");
+					
+			}
+					
+		}
+}
+			
+			
+			
+			
+
+
+function appendToList()
+{
+
+		if (localStorage.length > 0)
+		{
+			for(var i=1, len=localStorage.length; i<=len; i++)
+			{
+			var t = localStorage.getItem(i);
+			var j=0;
+			while(!t){
+				j++;
+				t = localStorage.getItem(i+j);
+				}
+							
+			localStorage.removeItem(i+j);
+						
+			var tt = JSON.parse(t);
+			var titleField = tt.title;
+			var descriptionField = tt.desc;
+			var dateField = tt.date;
+			var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+			localStorage.setItem(i ,JSON.stringify(usrInput));
+					
+			}
+					
+		}
+				
+				
+
+		var nextId = localStorage.length + 1;
+		var titleField = document.getElementById('title').value;
+		var descriptionField = document.getElementById('description').value;
+		var dateField = document.getElementById('datepicker').value;
+		var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+		localStorage.setItem(nextId ,JSON.stringify(usrInput));
+          $("#swipedelete").append("<li id=" + nextId + "><a href='#'>" + dateField  + " -- " + titleField + " " + descriptionField  + "</a></li>");
+          $("#swipedelete").listview("refresh");
+                
+    }
+
+
+
+        </script>
+
+
+
+
+</html>
