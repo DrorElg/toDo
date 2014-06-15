@@ -4,7 +4,7 @@
 
 
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
 <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
 <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
@@ -12,17 +12,20 @@
 <script type='text/javascript' src='http://code.jquery.com/jquery-1.7.1.js'></script>
 <script type='text/javascript' src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
 <link rel="stylesheet" type="text/css" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css">
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
+<script src="js/local-notification.js"></script>
+<link rel="stylesheet" href="css/index.css" />
 
 
-
-
-<script type='text/javascript'>//<![CDATA[ 
+<script type='text/javascript'> 
 $(window).load(function(){
 var onswipe = false;
-$( '#swipedelete li' ).live( 'swiperight',function(){ 
-curId = this.id;
+//$( '#swipedelete li' ).live( 'swiperight',function(){ 
+//curId = this.id;
 // changed to click to test on desktop browser
-//$( '#swipedelete li' ).live( 'click',function(){ 
+$( '#swipedelete li' ).live( 'click',function(){ 
+curId = this.id;
 // change click to swiperight to test swipe
     if(!onswipe){
         onswipe = true;
@@ -76,8 +79,9 @@ curId = this.id;
                 <form id="todo-form">
                     <input type="text" id="title" placeholder="Title" onfocus="if(this.value){this.value='';}" />
                     <textarea id="description" placeholder="Descrtipion"onfocus="if(this.value){this.value='';}"></textarea>
-		    <input name="mydate" id="datepicker" placeholder="Date" type="datetime-local"" data-role="datebox" data-options='{"mode":"calbox","useFocus": true}' >
-		    <input type="button" value="Add item to list" onclick="appendToList()"/>
+		    <input name="mydate" id="datepicker" placeholder="Date" type="date" data-role="datebox" data-options='{"mode":"calbox","useFocus": true}' >
+		    <input name="mytime" id="timepicker" placeholder="Time" type="time">
+			<input type="button" value="Add item to list" onclick="appendToList()"/>
 	
                 </form>
 	</div> 
@@ -94,8 +98,9 @@ curId = this.id;
                 <form id="todo-form">
                     <input type="text" id="TitleEdit" placeholder="Title" />
                     <textarea id="descriptionEdit" placeholder="Descrtipion"></textarea>
-		    <input name="mydate" id="datepickerEdit" type="datetime-local"" data-role="datebox"data-options='{"mode":"calbox","useFocus": true}'>
-		    <input type="button" value="Update" onclick="editList()"/>
+		    <input name="mydate" id="datepickerEdit" type="date" data-role="datebox"data-options='{"mode":"calbox","useFocus": true}'>
+		    <input name="mytime" id="timepickerEdit" placeholder="Time" type="time">
+			<input type="button" value="Update" onclick="editList()"/>
 
 	
                 </form>
@@ -145,10 +150,11 @@ curId = this.id;
 						var titleField = tt.title;
 						var descriptionField = tt.desc;
 						var dateField = tt.date;
-						var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+						var timeField = tt.time;
+						var usrInput = {title:titleField,desc:descriptionField ,date:dateField,time:timeField};
 						localStorage.setItem(i ,JSON.stringify(usrInput));
  
-						$("#swipedelete").append("<li id=" + i + "><a href='#'>" + dateField  + " -- " + titleField + " " + descriptionField  + " </a> </li>");
+						$("#swipedelete").append("<li id=" + i + "><a href='#'>" + dateField  + " -- " + timeField  + " -- " + titleField + " " + descriptionField  + " </a> </li>");
                			$("#swipedelete").listview("refresh");
 					
 					}
@@ -167,9 +173,11 @@ function editFun(id){
 		var titleField = tt.title;
 		var descriptionField = tt.desc;
 		var dateField = tt.date;
+		var timeField = tt.time;
 		document.getElementById('TitleEdit').value = titleField ;
 		document.getElementById('descriptionEdit').value = descriptionField ;
 		document.getElementById('datepickerEdit').value = dateField ;
+		document.getElementById('timepickerEdit').value = timeField ;
 
 	}
 			
@@ -180,10 +188,14 @@ function editList(){
 		var titleField = document.getElementById('TitleEdit').value;
 		var descriptionField = document.getElementById('descriptionEdit').value;
 		var dateField = document.getElementById('datepickerEdit').value;
-		var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+		var timeField = document.getElementById('timepickerEdit').value;
+		var usrInput = {title:titleField,desc:descriptionField ,date:dateField,time:timeField};
+		
 		localStorage.setItem(curId ,JSON.stringify(usrInput));
-                		     
+        window.plugin.notification.local.cancel(curId);
+		main.addNotification(curId,titleField,descriptionField,timeField,dateField);       		     
 		$( "#swipedelete" ).children().remove();
+		
 		refreshList();
 		window.location.reload();
      
@@ -199,8 +211,9 @@ function refreshList(){
 			var titleField = tt.title;
 			var descriptionField = tt.desc;
 			var dateField = tt.date;
+			var timeField = tt.time;
 						
-			$("#swipedelete").append("<li id=" + i  + "><a href='#'>" + dateField  + " -- " + titleField + " " + descriptionField  + "</a></li>");
+			$("#swipedelete").append("<li id=" + i  + "><a href='#'>" + dateField  + "--" + timeField  + " -- " + titleField + " " + descriptionField  + "</a></li>");
              $("#swipedelete").listview("refresh");
 					
 			}
@@ -233,7 +246,8 @@ function appendToList()
 			var titleField = tt.title;
 			var descriptionField = tt.desc;
 			var dateField = tt.date;
-			var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+			var timeField = tt.time;
+			var usrInput = {title:titleField,desc:descriptionField ,date:dateField,time:timeField};
 			localStorage.setItem(i ,JSON.stringify(usrInput));
 					
 			}
@@ -246,11 +260,12 @@ function appendToList()
 		var titleField = document.getElementById('title').value;
 		var descriptionField = document.getElementById('description').value;
 		var dateField = document.getElementById('datepicker').value;
-		var usrInput = {title:titleField,desc:descriptionField ,date:dateField};
+		var timeField = document.getElementById('timepicker').value;
+		var usrInput = {title:titleField,desc:descriptionField ,date:dateField,time:timeField};
 		localStorage.setItem(nextId ,JSON.stringify(usrInput));
-          $("#swipedelete").append("<li id=" + nextId + "><a href='#'>" + dateField  + " -- " + titleField + " " + descriptionField  + "</a></li>");
+          $("#swipedelete").append("<li id=" + nextId + "><a href='#'>" + dateField  + "-- " + timeField  + " -- " + titleField + " " + descriptionField  + "</a></li>");
           $("#swipedelete").listview("refresh");
-                
+        main.addNotification(nextId,titleField,descriptionField,timeField,dateField);         
     }
 
 
